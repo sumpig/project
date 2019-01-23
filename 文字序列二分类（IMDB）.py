@@ -88,3 +88,7 @@ plt.ylabel('Loss')
 plt.legend()
 
 plt.show()
+
+#过拟合重新训练...
+#测试集测试
+model.predict(x_test)
