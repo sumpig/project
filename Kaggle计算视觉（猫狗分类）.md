@@ -127,4 +127,39 @@ model.add(layers.MaxPooling2D((2, 2)))
 model.add(layers.Flatten())
 model.add(layers.Dense(512, activation='relu'))
 model.add(layers.Dense(1, activation='sigmoid'))
+
+from keras import optimizers
+
+model.compile(loss='binary_crossentropy',
+              optimizer=optimizers.RMSprop(lr=1e-4),
+              metrics=['acc'])
+```
+
+# 4 - 数据预处理
+1. 读取图像文件
+2. 将JPEG文件解码为RGB像素网格
+3. 将这些像素网格转换为浮点数张量
+4. 将像素值（0~255）缩放到[0,1]区间
+
+>Keras有一个图像处理辅助工具的模块，可以快速创建Python生成器，能够将硬盘上的图像文件自动转换为预处理好的张量批量。
+```python
+from keras.preprocessing.image import ImageDataGenerator
+
+train_datagen = ImageDataGenerator(rescale=1./255)
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+train_generator = train_datagen.flow_from_directory(
+        # This is the target directory
+        train_dir,
+        # All images will be resized to 150x150
+        target_size=(150, 150),
+        batch_size=20,
+        # Since we use binary_crossentropy loss, we need binary labels
+        class_mode='binary')
+
+validation_generator = test_datagen.flow_from_directory(
+        validation_dir,
+        target_size=(150, 150),
+        batch_size=20,
+        class_mode='binary')
 ```
