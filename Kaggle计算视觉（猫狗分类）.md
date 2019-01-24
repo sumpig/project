@@ -526,4 +526,113 @@ history = model.fit_generator(
       validation_steps=50,
       verbose=2)
 ```
+![alt](https://github.com/sumpig/project/blob/master/picture/%E7%8C%AB%E7%8B%974.png)
 
+>精度为96%
+
+#7 - 微调模型
+>对于用于特征提取的冻结的模型基，微调是指将其顶部的几层“解冻”，并将这解冻的几层和新增加的部分联合训练。目的是略微调整所复用模型中更加抽象的表示，以便让这些表示与当前的问题更加相关。
+
+- 微调VGG16中的最后三个卷积层
+```python
+conv_base.trainable = True
+
+set_trainable = False
+for layer in conv_base.layers:
+    if layer.name == 'block5_conv1':
+        set_trainable = True
+    if set_trainable:
+        layer.trainable = True
+    else:
+        layer.trainable = False
+```
+
+- 训练模型
+```python
+model.compile(loss='binary_crossentropy',
+              optimizer=optimizers.RMSprop(lr=1e-5),
+              metrics=['acc'])
+
+history = model.fit_generator(
+      train_generator,
+      steps_per_epoch=100,
+      epochs=100,
+      validation_data=validation_generator,
+      validation_steps=50)
+      
+model.save('cats_and_dogs_small_4.h5')
+
+acc = history.history['acc']
+val_acc = history.history['val_acc']
+loss = history.history['loss']
+val_loss = history.history['val_loss']
+
+epochs = range(len(acc))
+
+plt.plot(epochs, acc, 'bo', label='Training acc')
+plt.plot(epochs, val_acc, 'b', label='Validation acc')
+plt.title('Training and validation accuracy')
+plt.legend()
+
+plt.figure()
+
+plt.plot(epochs, loss, 'bo', label='Training loss')
+plt.plot(epochs, val_loss, 'b', label='Validation loss')
+plt.title('Training and validation loss')
+plt.legend()
+
+plt.show()
+```
+![alt](https://github.com/sumpig/project/blob/master/picture/%E7%8C%AB%E7%8B%975.png)
+
+- 使绘制曲线变得平滑
+```python
+def smooth_curve(points, factor=0.8):
+  smoothed_points = []
+  for point in points:
+    if smoothed_points:
+      previous = smoothed_points[-1]
+      smoothed_points.append(previous * factor + point * (1 - factor))
+    else:
+      smoothed_points.append(point)
+  return smoothed_points
+
+plt.plot(epochs,
+         smooth_curve(acc), 'bo', label='Smoothed training acc')
+plt.plot(epochs,
+         smooth_curve(val_acc), 'b', label='Smoothed validation acc')
+plt.title('Training and validation accuracy')
+plt.legend()
+
+plt.figure()
+
+plt.plot(epochs,
+         smooth_curve(loss), 'bo', label='Smoothed training loss')
+plt.plot(epochs,
+         smooth_curve(val_loss), 'b', label='Smoothed validation loss')
+plt.title('Training and validation loss')
+plt.legend()
+
+plt.show()
+```
+![alt](https://github.com/sumpig/project/blob/master/picture/%E7%8C%AB%E7%8B%976.png)
+
+>精度提高了1%
+
+- 在测试数据上最终评估这个模型
+```python
+test_generator = test_datagen.flow_from_directory(
+        test_dir,
+        target_size=(150, 150),
+        batch_size=20,
+        class_mode='binary')
+
+test_loss, test_acc = model.evaluate_generator(test_generator, steps=50)
+print('test acc:', test_acc)
+```
+>最终，仅用一小部分数据得到了97%的精度
+
+#8 - 小结
+- 在小型数据集上主要的问题是过拟合，数据增强是一种降低过拟合的强大方法。
+- 利用特征提取，可以很容易将现有的卷积神经网络复用于新的数据集。
+- 作为特征提取的补充，微调可以进一步提高模型性能。
