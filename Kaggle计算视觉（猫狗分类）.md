@@ -205,4 +205,4 @@ plt.legend()
 plt.show()
 ```
 
-![alt](/-/猫狗1.png)
+![alt](https://github.com/sumpig/project/blob/master/picture/%E7%8C%AB%E7%8B%971.png)
