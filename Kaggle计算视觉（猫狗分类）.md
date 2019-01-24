@@ -204,3 +204,5 @@ plt.legend()
 
 plt.show()
 ```
+
+![image](https://github.com/sumpig/-/blob/master/%E7%8C%AB%E7%8B%971.png）
