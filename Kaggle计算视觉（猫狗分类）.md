@@ -1,33 +1,24 @@
 # 图片分类 - Dogs vs cats
-深度学习想要独立地在训练数据中找到有趣的特征，需要拥有大量训练样本时才能实现。要想在小数据集中训练模型，就要用到卷积神经网络局部平移不变的特性。深度学习模型本质上具有高度的可复用性，特别是在计算机视觉领域，许多与训练模型可以用于在数据很少的情况下构建强大的视觉模型。这里将使用 Kaggle 的 dogs-vs-cats 数据（https://www.kaggle.com/c/dogs-vs-cats/data) 中的一小部分，利用数据增强，并结合 VGG16 预训练模型来训练，从而达到一个较高的精度。
+深度学习想要独立地在训练数据中找到有趣的特征，需要拥有大量训练样本时才能实现。要想在小数据集中训练模型，就要用到卷积神经网络局部平移不变的特性。深度学习模型本质上具有高度的可复用性，特别是在计算机视觉领域，许多与训练模型可以用于在数据很少的情况下构建强大的视觉模型。这里使用 Kaggle 的 dogs-vs-cats 数据（https://www.kaggle.com/c/dogs-vs-cats/data) 中的一小部分，利用数据增强，并结合 VGG16 预训练模型来训练，从而达到一个较高的精度。
 
 **point**
 - 数据增强
 - VGG16
 - fine-tuning
 
-# 1 - 原始数据集
->链接：https://pan.baidu.com/s/1Mc1dbsHGQ0SOUlZFyRynIw 
-提取码：70k8 
-
-# 2 - 创建用于训练和测试的数据集
->分为猫狗两个类别，其中每个类别中，训练集为1000个样本，验证集为500个样本，测试集为500个样本
+# 1 - 提取数据
+这个数据集包含25000张猫狗图片，每个类别都有12500张。我们需要创建一个新数据集，其中包含三个子集：每个类别各1000样本的训练集，500个样本的验证集合500个样本的测试集。
 
 ```python
-import os, shutil
-
-original_dataset_dir = 'kaggle_original_data'
-
-base_dir = 'cats_and_dogs_small'
+original_dataset_dir = r"H:\kaggle\train"
+base_dir = r"H:\kaggle\cats_and_dogs_small"
 os.mkdir(base_dir)
-
 train_dir = os.path.join(base_dir, 'train')
 os.mkdir(train_dir)
 validation_dir = os.path.join(base_dir, 'validation')
 os.mkdir(validation_dir)
 test_dir = os.path.join(base_dir, 'test')
 os.mkdir(test_dir)
-
 #训练集
 train_cats_dir = os.path.join(train_dir, 'cats')
 os.mkdir(train_cats_dir)
@@ -85,6 +76,7 @@ for fname in fnames:
     dst = os.path.join(test_dogs_dir, fname)
     shutil.copyfile(src, dst)
 ```
+
 
 # 3 - 构建网络
 ```python
