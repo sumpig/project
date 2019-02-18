@@ -226,7 +226,9 @@ plt.show()
 
 这些图像可以很明显的看出过拟合的特征。验证精度停留在70%~72%。验证损失在5轮后达到最小值，然后保持不变，而训练损失则一直下降，直到接近0。因为训练样本较少，所以过拟合问题很大。下面我们使用数据增强和dropout的方法来重新训练下。
 
-# 5 - 使用数据增强
+## 4 - 使用数据增强
+数据增强是从现有的训练样本中生成更多的训练数据，其方法是利用多种能够生成可信图像的随机变换来增加样本。这让模型能够观察到数据的更多内容，从而具有更好的泛化能力。
+
 - 定义一个包含dropout的新卷积神经网络
 ```python
 model = models.Sequential()
@@ -260,7 +262,7 @@ train_datagen = ImageDataGenerator(
     zoom_range=0.2,
     horizontal_flip=True,)
 
-#验证数据
+# 不能增强验证数据
 test_datagen = ImageDataGenerator(rescale=1./255)
 
 train_generator = train_datagen.flow_from_directory(
@@ -285,7 +287,7 @@ history = model.fit_generator(
 model.save('cats_and_dogs_small_2.h5')      
 ```
 
-- 再次绘制结果
+- 绘制结果
 ```python
 acc = history.history['acc']
 val_acc = history.history['val_acc']
@@ -311,10 +313,13 @@ plt.show()
 
 ![alt](https://github.com/sumpig/project/blob/master/picture/%E7%8C%AB%E7%8B%972.png)
 
->使用正则化方法后，精度提升到86%。再想提升精度十分困难，因为可用的数据太少。
+使用正则化方法以及调节网络参数（比如每个卷积层的过滤器个数和网络中的层数），精度可以达到86%。再想提升精度十分困难，因为可用的数据太少。下一步，我们使用预训练模型来继续提高精度。
 
-# 6 - 使用预训练的卷积神经网络
-> 使用ImageNet上训练的VGG16网络的卷积基从猫狗图像中提取有趣的特征，然后再这些特征上训练一个猫狗分类器。
+
+## 5 - 使用预训练的卷积神经网络
+预训练网络是一个保存好的网络，之前已经在大型数据集（通常是大规模图像分类任务）上训练好。如果这个原始数据集足够大且足够通用，那么预训练网络学到的特征的空间层次结构可以有效地作为视觉世界的通用模型。
+我们将使用VGG16架构，它由 Karen Simonyan 和 Andrew Zisserman 在2014年开发。相对于VGG16，还有许多其他先进的模型，如ResNet、Inception、Xception等，可以在官方的github中获取详情（https://github.com/fchollet/deep-learning-models/releases） 。
+使用预训练网络有两种方法：**特征提取** 和 **微调模型**。我们先来看特征提取。
 
 - 将VGG16卷积基实例化
 ```python
@@ -372,8 +377,12 @@ conv_base.summary()
 # Non-trainable params: 0
 # _________________________________________________________________
 ```
+最后的特征图形状为（4,4,512）。我们将在这个特征上添加一个密集连接分类器。接下来有两种方法可以选择。
+1. 在你的数据集上运行卷积基，将输出保存成硬盘中的Numpy数据，然后用这个数据作为输入，输入到独立的密集连接分类器中。这种方法速度快，计算代价低，因为对每个输入图像只运行一次卷积基。出于同样的原因，这种方法不允许使用数据增强。
+2. 在顶部添加Dense层来扩展已有的模型（conv_base），并在输入数据上端到端地运行整个模型。这样可以使用数据增强，因为每个输入图像进入模型时都会经过卷积基。但这种方法的计算代价比第一种要高很多。
 
 - 不使用数据增强的快速特征提取
+首先，运行 ImageDataGenerator 示例，将图像及其标签提取为Numpy数据。我们需要调用conv_base模型的predict方法来从这些图像提取特征。
 ```python
 import os
 import numpy as np
@@ -406,8 +415,7 @@ def extract_features(directory, sample_count):
         labels[i * batch_size : (i + 1) * batch_size] = labels_batch
         i += 1
         if i * batch_size >= sample_count:
-            # Note that since generators yield data indefinitely in a loop,
-            # we must `break` after every image has been seen once.
+            # 读完所有图像后，终止循环
             break
     return features, labels
 
@@ -465,9 +473,10 @@ plt.show()
 
 ![alt](https://github.com/sumpig/project/blob/master/picture/%E7%8C%AB%E7%8B%973.png)
 
->精度达到了90%，从图中可以看出，虽然dropout比率相当大，但模型几乎从一开始就过拟合，这是因为本方法没有使用数据增强。
+精度达到了90%，从图中可以看出，虽然dropout比率相当大，但模型几乎从一开始就过拟合，这是因为本方法没有使用数据增强，而数据增强对防止小型图像数据集的过拟合非常重要。
 
 - 使用数据增强的特征提取
+我们来看一下特征提取的第二种方法。这种方法是：扩展conv_base模型，然后再输入数据上端到端地运行模型。
 ```python
 from keras import models
 from keras import layers
@@ -545,10 +554,18 @@ history = model.fit_generator(
 ```
 ![alt](https://github.com/sumpig/project/blob/master/picture/%E7%8C%AB%E7%8B%974.png)
 
->精度为96%
+验证精度为96%，这个精度要比之前的好很多了。
 
-# 7 - 微调模型
->对于用于特征提取的冻结的模型基，微调是指将其顶部的几层“解冻”，并将这解冻的几层和新增加的部分联合训练。目的是略微调整所复用模型中更加抽象的表示，以便让这些表示与当前的问题更加相关。
+## 6 - 微调模型
+一种广泛用高的模型复用方法是 **模型微调**，与特征提取互为补充。对于用于特征提取的冻结的模型基，微调是指将其顶部的几层“解冻”，并将这解冻的几层和新增加的部分联合训练。目的是略微调整所复用模型中更加抽象的表示，以便让这些表示与当前的问题更加相关。
+只有分类器训练好了，才能微调卷积基的顶部几层。如果分类器没有训练好，那么训练期间通过网络传播的误差信号会特别大，微调的几层之前学到的表示都会被破坏。因此，微调的网络步骤如下：
+1. 在已经训练好的基玩过上添加自定义网络。
+2. 冻结基网络。
+3. 训练所添加的部分。
+4. 解冻及网络的一些层。
+5. 联合训练解冻的这些曾和添加的部分。
+
+上面做特征提取的时候，已经完成了前三个步骤。我们继续下面的步骤：先解冻conv_base，再冻结其中的部分层。
 
 - 微调VGG16中的最后三个卷积层
 ```python
@@ -564,7 +581,7 @@ for layer in conv_base.layers:
         layer.trainable = False
 ```
 
-- 训练模型
+- 微调模型
 ```python
 model.compile(loss='binary_crossentropy',
               optimizer=optimizers.RMSprop(lr=1e-5),
@@ -601,6 +618,7 @@ plt.legend()
 plt.show()
 ```
 ![alt](https://github.com/sumpig/project/blob/master/picture/%E7%8C%AB%E7%8B%975.png)
+这些曲线看起来包含噪声。为了让图像更具可读性，我们将每个损失和精度都替换为指数移动平均值，让曲线变得平滑。
 
 - 使绘制曲线变得平滑
 ```python
@@ -634,7 +652,7 @@ plt.show()
 ```
 ![alt](https://github.com/sumpig/project/blob/master/picture/%E7%8C%AB%E7%8B%976.png)
 
->精度提高了1%
+精度提高了1%。
 
 - 在测试数据上最终评估这个模型
 ```python
@@ -647,9 +665,9 @@ test_generator = test_datagen.flow_from_directory(
 test_loss, test_acc = model.evaluate_generator(test_generator, steps=50)
 print('test acc:', test_acc)
 ```
->最终，仅用一小部分数据得到了97%的精度
+最终，仅用一小部分数据得到了97%的精度。
 
-# 8 - 小结
+## 7 - 小结
 - 在小型数据集上主要的问题是过拟合，数据增强是一种降低过拟合的强大方法。
 - 利用特征提取，可以很容易将现有的卷积神经网络复用于新的数据集。
 - 作为特征提取的补充，微调可以进一步提高模型性能。
