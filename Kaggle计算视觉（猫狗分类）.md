@@ -1,3 +1,11 @@
+# 图片分类 - Dogs vs cats
+深度学习想要独立地在训练数据中找到有趣的特征，需要拥有大量训练样本时才能实现。要想在小数据集中训练模型，就要用到卷积神经网络局部平移不变的特性。深度学习模型本质上具有高度的可复用性，特别是在计算机视觉领域，许多与训练模型可以用于在数据很少的情况下构建强大的视觉模型。这里将使用 Kaggle 的 dogs-vs-cats 数据（https://www.kaggle.com/c/dogs-vs-cats/data) 中的一小部分，利用数据增强，并结合 VGG16 预训练模型来训练，从而达到一个较高的精度。
+
+**point**
+- 数据增强
+- VGG16
+- fine-tuning
+
 # 1 - 原始数据集
 >链接：https://pan.baidu.com/s/1Mc1dbsHGQ0SOUlZFyRynIw 
 提取码：70k8 
