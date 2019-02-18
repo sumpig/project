@@ -6,70 +6,85 @@
 - VGG16
 - fine-tuning
 
-# 1 - 提取数据
+## 1 - 提取数据
 这个数据集包含25000张猫狗图片，每个类别都有12500张。我们需要创建一个新数据集，其中包含三个子集：每个类别各1000样本的训练集，500个样本的验证集合500个样本的测试集。
 
 ```python
+# 原始数据集
 original_dataset_dir = r"H:\kaggle\train"
+
+# 保存较小数据集的目录
 base_dir = r"H:\kaggle\cats_and_dogs_small"
 os.mkdir(base_dir)
+
+# 训练、验证和测试目录
 train_dir = os.path.join(base_dir, 'train')
 os.mkdir(train_dir)
 validation_dir = os.path.join(base_dir, 'validation')
 os.mkdir(validation_dir)
 test_dir = os.path.join(base_dir, 'test')
 os.mkdir(test_dir)
-#训练集
+
+# 猫的训练图像目录
 train_cats_dir = os.path.join(train_dir, 'cats')
 os.mkdir(train_cats_dir)
 
+# 狗的训练图像目录
 train_dogs_dir = os.path.join(train_dir, 'dogs')
 os.mkdir(train_dogs_dir)
 
-#验证集
+# 猫的验证图像目录
 validation_cats_dir = os.path.join(validation_dir, 'cats')
 os.mkdir(validation_cats_dir)
 
+# 狗的验证图像目录
 validation_dogs_dir = os.path.join(validation_dir, 'dogs')
 os.mkdir(validation_dogs_dir)
 
-#测试集
+# 猫的测试图像目录
 test_cats_dir = os.path.join(test_dir, 'cats')
 os.mkdir(test_cats_dir)
 
+# 狗的测试图像目录
 test_dogs_dir = os.path.join(test_dir, 'dogs')
 os.mkdir(test_dogs_dir)
 
+# 将前1000张猫的图像复制到train_cats_dir
 fnames = ['cat.{}.jpg'.format(i) for i in range(1000)]
 for fname in fnames:
     src = os.path.join(original_dataset_dir, fname)
     dst = os.path.join(train_cats_dir, fname)
     shutil.copyfile(src, dst)
 
+# 将接下来500张猫的图像复制到validation_cats_dir
 fnames = ['cat.{}.jpg'.format(i) for i in range(1000, 1500)]
 for fname in fnames:
     src = os.path.join(original_dataset_dir, fname)
     dst = os.path.join(validation_cats_dir, fname)
     shutil.copyfile(src, dst)
-    
+
+# 将接下来500张猫的图像复制到test_cats_dir
 fnames = ['cat.{}.jpg'.format(i) for i in range(1500, 2000)]
 for fname in fnames:
     src = os.path.join(original_dataset_dir, fname)
     dst = os.path.join(test_cats_dir, fname)
     shutil.copyfile(src, dst)
-    
+
+# 将前1000张狗的图像复制到train_dogs_dir
 fnames = ['dog.{}.jpg'.format(i) for i in range(1000)]
 for fname in fnames:
     src = os.path.join(original_dataset_dir, fname)
     dst = os.path.join(train_dogs_dir, fname)
     shutil.copyfile(src, dst)
     
+# 将接下来500张狗的图像复制到validation_dogs_dir    
 fnames = ['dog.{}.jpg'.format(i) for i in range(1000, 1500)]
 for fname in fnames:
     src = os.path.join(original_dataset_dir, fname)
     dst = os.path.join(validation_dogs_dir, fname)
     shutil.copyfile(src, dst)
-    
+
+# 将接下来500张狗的图像复制到test_s_dir
 fnames = ['dog.{}.jpg'.format(i) for i in range(1500, 2000)]
 for fname in fnames:
     src = os.path.join(original_dataset_dir, fname)
