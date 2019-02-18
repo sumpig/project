@@ -153,23 +153,26 @@ model.compile(loss='binary_crossentropy',
               metrics=['acc'])
 ```
 
-# 4 - 数据预处理
-1. 读取图像文件
-2. 将JPEG文件解码为RGB像素网格
-3. 将这些像素网格转换为浮点数张量
-4. 将像素值（0~255）缩放到[0,1]区间
+## 3 - 数据预处理
+数据是以JPEG文件的形式保存在硬盘中，应该将数据格式化为经过预处理的浮点数张量，步骤如下：
+1. 读取图像文件。
+2. 将JPEG文件解码为RGB像素网格。
+3. 将这些像素网格转换为浮点数张量。
+4. 将像素值（0~255）缩放到[0,1]区间。
 
->Keras有一个图像处理辅助工具的模块，可以快速创建Python生成器，能够将硬盘上的图像文件自动转换为预处理好的张量批量。
+Keras有一个图像处理辅助工具的模块，位于 keras.preprocessing.image , 它包含 [ImageDataGenerator](https://keras.io/zh/preprocessing/image/#imagedatagenerator) 类，可以快速创建Python生成器，能够将硬盘上的图像文件自动转换为预处理好的张量批量。
+
 ```python
 from keras.preprocessing.image import ImageDataGenerator
 
+# 将所有图像缩放
 train_datagen = ImageDataGenerator(rescale=1./255)
 test_datagen = ImageDataGenerator(rescale=1./255)
 
 train_generator = train_datagen.flow_from_directory(
-        # This is the target directory
+        # 目标目录
         train_dir,
-        # All images will be resized to 150x150
+        # 将所有图像大小调整为150*150
         target_size=(150, 150),
         batch_size=20,
         # Since we use binary_crossentropy loss, we need binary labels
@@ -180,20 +183,16 @@ validation_generator = test_datagen.flow_from_directory(
         target_size=(150, 150),
         batch_size=20,
         class_mode='binary')
-```
 
-- 利用批量生成器拟合模型
-```python
+# 利用批量生成器拟合模型
 history = model.fit_generator(
       train_generator,
       steps_per_epoch=100,
       epochs=30,
       validation_data=validation_generator,
       validation_steps=50)
-```
 
-- 保存模型
-```python
+# 保存模型
 model.save('cats_and_dogs_small_1.h5')
 ```
 
