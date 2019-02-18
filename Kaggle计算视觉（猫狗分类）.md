@@ -93,7 +93,9 @@ for fname in fnames:
 ```
 
 
-# 3 - 构建网络
+## 2 - 构建网络
+我们构建一个小型卷积神经网络，卷积神经网络由Conv2D层（使用relu激活）和 MaxPooling2D层交替堆叠构成。初始输入尺寸为150\*150。这是一个二分类问题，所以网络最后一层使用sigmoid激活的单一单元。这个单元将对某个类别的概率进行编码。
+
 ```python
 # _________________________________________________________________
 # Layer (type)                 Output Shape              Param #   
@@ -143,6 +145,7 @@ model.add(layers.Flatten())
 model.add(layers.Dense(512, activation='relu'))
 model.add(layers.Dense(1, activation='sigmoid'))
 
+# 配置模型用于训练
 from keras import optimizers
 
 model.compile(loss='binary_crossentropy',
